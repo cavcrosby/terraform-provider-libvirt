@@ -118,8 +118,13 @@ func domainIfaceHasAddress(virConn *libvirt.Libvirt, domain libvirt.Domain,
 
 	for _, ifaceWithAddr := range ifacesWithAddr {
 		if len(ifaceWithAddr.Hwaddr) > 0 && (mac == strings.ToUpper(ifaceWithAddr.Hwaddr[0])) && len(ifaceWithAddr.Addrs) > 0 {
-			log.Printf("[DEBUG] found IPs for MAC=%+v: %+v\n", mac, ifaceWithAddr.Addrs)
-			return true, false, nil
+			if len(ifaceWithAddr.Addrs) == 1 && (strings.Contains(ifaceWithAddr.Addrs[0].Addr, "169.254.") || strings.Contains(ifaceWithAddr.Addrs[0].Addr, "fe80::")) {
+				log.Printf("[DEBUG] found only a Link-local IP for MAC=%+v: %+v\n", mac, ifaceWithAddr.Addrs)
+				continue
+			} else {
+				log.Printf("[DEBUG] found IPs for MAC=%+v: %+v\n", mac, ifaceWithAddr.Addrs)
+				return true, false, nil
+			}
 		}
 	}
 
